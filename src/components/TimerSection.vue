@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { db } from '../supabase'
 
 // 恋爱纪念日：2025年11月22日 00:00:00
 const ANNIVERSARY_DATE = new Date('2025-11-22T00:00:00')
@@ -35,15 +36,26 @@ const boyInput = ref(null)
 const girlInput = ref(null)
 
 const loadAvatars = () => {
-  boyAvatar.value = localStorage.getItem('love_avatar_boy')
-  girlAvatar.value = localStorage.getItem('love_avatar_girl')
+  // 云端优先
+  if (db.getAvatarUrl) {
+    const boyUrl = db.getAvatarUrl('boy.jpg')
+    const girlUrl = db.getAvatarUrl('girl.jpg')
+    if (boyUrl) boyAvatar.value = boyUrl
+    if (girlUrl) girlAvatar.value = girlUrl
+  }
+  // 本地兜底
+  if (!boyAvatar.value) boyAvatar.value = localStorage.getItem('love_avatar_boy')
+  if (!girlAvatar.value) girlAvatar.value = localStorage.getItem('love_avatar_girl')
 }
 
-const handleUpload = (role, event) => {
+const handleUpload = async (role, event) => {
   const file = event.target.files[0]
   if (!file) return
+  const filename = role === 'boy' ? 'boy.jpg' : 'girl.jpg'
+
+  // 同时存本地和云端
   const reader = new FileReader()
-  reader.onload = (e) => {
+  reader.onload = async (e) => {
     const dataUrl = e.target.result
     if (role === 'boy') {
       boyAvatar.value = dataUrl
@@ -51,6 +63,12 @@ const handleUpload = (role, event) => {
     } else {
       girlAvatar.value = dataUrl
       localStorage.setItem('love_avatar_girl', dataUrl)
+    }
+    // 上传云端
+    const cloudUrl = await db.uploadAvatar(file, filename)
+    if (cloudUrl) {
+      if (role === 'boy') boyAvatar.value = cloudUrl
+      else girlAvatar.value = cloudUrl
     }
   }
   reader.readAsDataURL(file)

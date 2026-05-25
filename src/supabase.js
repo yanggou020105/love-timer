@@ -1,20 +1,14 @@
 import { createClient } from '@supabase/supabase-js'
 
-// 从 Vite 环境变量中读取 Supabase 配置
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
-// 检查是否配置了 Supabase 环境变量
 export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey)
 
-export const supabase = isSupabaseConfigured 
+export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null
 
-/**
- * 统一的数据管理驱动（支持 Supabase 云存储与 LocalStorage 本地降级）
- * 这样即使用户没有配数据库，网页在本地依然可以完美运转和测试！
- */
 export const db = {
   // --- 1. 她的档案数据接口 ---
   async getPreferences() {
@@ -32,13 +26,11 @@ export const db = {
       }
     }
 
-    // 本地缓存读取
     const local = localStorage.getItem('love_preferences')
     if (local) {
       return JSON.parse(local)
     }
-    
-    // 默认初始配置（带女友“亦雾安”和男友“羊狗”的相关预设）
+
     const defaultData = [
       { id: 1, key: 'tea', label: '🧋 奶茶偏好', value: '乌龙奶茶 / 五分糖 / 去冰 / 加珍珠' },
       { id: 2, key: 'food', label: '🍲 最爱美食', value: '番茄小火锅、芝士草莓、章鱼小丸子' },
@@ -63,7 +55,6 @@ export const db = {
       }
     }
 
-    // 本地缓存更新
     const current = await this.getPreferences()
     const item = current.find(p => p.id === id)
     if (item) {
@@ -125,5 +116,28 @@ export const db = {
       localStorage.setItem('love_coupons', JSON.stringify(current))
     }
     return { isRedeemed: true, time: timeString }
+  },
+
+  // --- 3. 头像云端存储接口 ---
+  getAvatarUrl(filename) {
+    if (!isSupabaseConfigured) return null
+    return `${supabaseUrl}/storage/v1/object/public/avatars/${filename}`
+  },
+
+  async uploadAvatar(file, filename) {
+    if (!isSupabaseConfigured) return null
+    const { error } = await supabase.storage
+      .from('avatars')
+      .upload(filename, file, { upsert: true, contentType: file.type })
+    if (error) {
+      console.warn('头像上传失败:', error)
+      return null
+    }
+    return this.getAvatarUrl(filename)
+  },
+
+  async removeAvatar(filename) {
+    if (!isSupabaseConfigured) return
+    await supabase.storage.from('avatars').remove([filename])
   }
 }
