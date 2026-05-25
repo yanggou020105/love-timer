@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(start *)",
+      "WebSearch",
+      "mcp__ide__getDiagnostics",
+      "PowerShell(Get-ChildItem *)",
+      "WebFetch(domain:www.yinleku.cn)",
+      "WebFetch(domain:www.aigei.com)",
+      "WebFetch(domain:houzi8.com)",
+      "Bash(New-Item *)",
+      "WebFetch(domain:pixabay.com)",
+      "WebFetch(domain:freemusicarchive.org)",
+      "PowerShell(Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAlias -notmatch \"Loopback\" -and $_.PrefixOrigin -ne \"WellKnown\" } | Select-Object -First 1 -ExpandProperty IPAddress)",
+      "PowerShell(Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -match \"^192\\\\.168\\\\.\" -or $_.IPAddress -match \"^10\\\\.\" -or $_.IPAddress -match \"^172\\\\.\\(1[6-9]|2[0-9]|3[0-1]\\)\\\\.\" } | Select-Object IPAddress, InterfaceAlias)",
+      "Bash(ipconfig)",
+      "Bash(Select-String \"IPv4\")",
+      "Bash(npx vite *)",
+      "Bash(gh auth *)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git config *)"
+    ]
+  }
+}
